@@ -1,4 +1,10 @@
 {
+  "name": "our-love-story",
+  "private": true,
+  "scripts": {
+    "postinstall": "npm install --prefix backend",
+    "start": "npm start --prefix backend"
+  },
   "dependencies": {
     "cloudinary": "^2.10.0",
     "mongodb": "^7.3.0"
