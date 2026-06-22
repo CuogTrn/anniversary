@@ -1,0 +1,1194 @@
+/* ============================================================
+   OUR LOVE STORY - Custom Stylesheet
+   ============================================================
+   Bổ sung cho Tailwind CSS: Hiệu ứng đặc biệt, animations,
+   color palette tùy chỉnh, và các style không thể dùng Tailwind.
+   ============================================================ */
+
+/* ============================================================
+   1. GOOGLE FONTS IMPORT
+   ============================================================ */
+@import url('https://fonts.googleapis.com/css2?family=Dancing+Script:wght@400;600;700&family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&family=Inter:wght@300;400;500;600&display=swap');
+
+/* ============================================================
+   2. CSS CUSTOM PROPERTIES (Biến màu & hiệu ứng)
+   ============================================================ */
+:root {
+  /* Tông màu chủ đạo */
+  --pink-pastel: #F4A0B5;
+  --pink-light: #FFD6E0;
+  --pink-soft: #FFF0F3;
+  --cream: #FFF8F0;
+  --cream-dark: #F5EDE3;
+  --wine-red: #722F37;
+  --wine-dark: #5A1E25;
+  --rose-gold: #B76E79;
+  --rose-light: #D4A0A8;
+  --blush: #E8B4B8;
+
+  /* Gradient chính */
+  --gradient-main: linear-gradient(135deg, #FFD6E0 0%, #FFF0F3 50%, #FFF8F0 100%);
+  --gradient-card: linear-gradient(145deg, rgba(255, 255, 255, 0.9), rgba(255, 240, 243, 0.7));
+  --gradient-wine: linear-gradient(135deg, #722F37, #B76E79);
+  --gradient-heart: linear-gradient(135deg, #FF6B8A, #FF4D6D, #C9184A);
+
+  /* Shadow */
+  --shadow-soft: 0 4px 20px rgba(183, 110, 121, 0.15);
+  --shadow-card: 0 8px 32px rgba(183, 110, 121, 0.12);
+  --shadow-glow: 0 0 30px rgba(244, 160, 181, 0.3);
+}
+
+/* ============================================================
+   3. RESET & BASE STYLES
+   ============================================================ */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  -webkit-tap-highlight-color: transparent; /* Tắt highlight xanh khi tap trên mobile */
+}
+
+html {
+  scroll-behavior: smooth;
+  overflow-x: hidden;
+}
+
+body {
+  font-family: 'Inter', sans-serif;
+  background: var(--gradient-main);
+  color: var(--wine-red);
+  min-height: 100vh;
+  min-height: 100dvh; /* Dynamic viewport height cho mobile */
+  overscroll-behavior: none;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 4px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: var(--rose-light);
+  border-radius: 4px;
+}
+
+/* ============================================================
+   4. CANVAS HIỆU ỨNG TRÁI TIM RƠI
+   ============================================================
+   Canvas phủ toàn màn hình, pointer-events: none để không
+   chặn việc bấm nút hoặc tương tác bên dưới.
+   ============================================================ */
+#hearts-canvas {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 1; /* Nằm trên background nhưng dưới nội dung */
+  pointer-events: none; /* QUAN TRỌNG: Không chặn click/touch */
+  opacity: 0.6;
+}
+
+/* ============================================================
+   5. LAYOUT CHÍNH - SPA STRUCTURE
+   ============================================================ */
+
+/* Container chính chứa tất cả nội dung */
+#app-container {
+  position: relative;
+  z-index: 2; /* Nằm trên canvas trái tim */
+  min-height: 100vh;
+  min-height: 100dvh;
+  padding-bottom: 80px; /* Chừa chỗ cho bottom nav */
+}
+
+/* Các trang (section) - ẩn/hiện bằng JS */
+.page-section {
+  display: none;
+  animation: fadeInUp 0.4s ease-out;
+  padding: 0 16px;
+}
+
+.page-section.active {
+  display: block;
+}
+
+/* Animation cho chuyển trang */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+/* ============================================================
+   6. HEADER
+   ============================================================ */
+.app-header {
+  text-align: center;
+  padding: 20px 16px 10px;
+  position: relative;
+  z-index: 10;
+}
+
+.app-header .logo-text {
+  font-family: 'Dancing Script', cursive;
+  font-size: 2rem;
+  font-weight: 700;
+  background: var(--gradient-wine);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  cursor: default;
+  user-select: none;
+  display: inline-block;
+  transition: transform 0.3s ease;
+}
+
+.app-header .logo-text:active {
+  transform: scale(0.95);
+}
+
+/* Hiệu ứng nhấp nháy nhẹ cho logo */
+.app-header .logo-text::after {
+  content: ' ♥';
+  -webkit-text-fill-color: var(--pink-pastel);
+  animation: heartBeat 2s ease-in-out infinite;
+}
+
+@keyframes heartBeat {
+  0%, 100% { transform: scale(1); }
+  14% { transform: scale(1.15); }
+  28% { transform: scale(1); }
+  42% { transform: scale(1.1); }
+  56% { transform: scale(1); }
+}
+
+/* ============================================================
+   7. ĐỒNG HỒ ĐẾM NGÀY YÊU NHAU (LOVE COUNTER)
+   ============================================================ */
+.love-counter-section {
+  text-align: center;
+  padding: 20px 0 30px;
+}
+
+.love-counter-label {
+  font-family: 'Playfair Display', serif;
+  font-size: 1.1rem;
+  color: var(--rose-gold);
+  margin-bottom: 16px;
+  font-style: italic;
+}
+
+.love-counter-grid {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-bottom: 20px;
+}
+
+.counter-item {
+  background: rgba(255, 255, 255, 0.8);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid rgba(244, 160, 181, 0.3);
+  border-radius: 16px;
+  padding: 14px 12px;
+  min-width: 72px;
+  box-shadow: var(--shadow-soft);
+  transition: transform 0.3s ease;
+}
+
+.counter-item:hover {
+  transform: translateY(-3px);
+}
+
+.counter-number {
+  font-family: 'Playfair Display', serif;
+  font-size: 2rem;
+  font-weight: 700;
+  color: var(--wine-red);
+  line-height: 1;
+  display: block;
+}
+
+.counter-label {
+  font-size: 0.7rem;
+  font-weight: 500;
+  color: var(--rose-gold);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  margin-top: 4px;
+  display: block;
+}
+
+/* ============================================================
+   8. ẢNH ĐẠI DIỆN CẶP ĐÔI
+   ============================================================ */
+.couple-avatar-wrapper {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 0;
+  margin: 10px 0 20px;
+  position: relative;
+}
+
+.couple-avatar {
+  width: 90px;
+  height: 90px;
+  border-radius: 50%;
+  border: 3px solid var(--pink-pastel);
+  object-fit: cover;
+  box-shadow: var(--shadow-glow);
+  transition: transform 0.3s ease;
+}
+
+.couple-avatar:first-child {
+  z-index: 2;
+  transform: translateX(10px);
+}
+
+.couple-avatar:last-child {
+  z-index: 1;
+  transform: translateX(-10px);
+}
+
+.couple-heart-icon {
+  position: absolute;
+  z-index: 3;
+  font-size: 1.5rem;
+  animation: heartBeat 2s ease-in-out infinite;
+  filter: drop-shadow(0 2px 4px rgba(244, 160, 181, 0.5));
+}
+
+/* ============================================================
+   9. NÚT ĐĨA NHẠC (MUSIC TOGGLE)
+   ============================================================ */
+.music-toggle-wrapper {
+  text-align: center;
+  margin: 10px 0 20px;
+}
+
+.music-btn {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  border: none;
+  background: var(--gradient-wine);
+  color: white;
+  font-size: 1.5rem;
+  cursor: pointer;
+  box-shadow: var(--shadow-card);
+  position: relative;
+  transition: box-shadow 0.3s ease;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.music-btn:hover {
+  box-shadow: var(--shadow-glow);
+}
+
+/* Hiệu ứng đĩa nhạc xoay khi đang phát */
+.music-btn.playing {
+  animation: spinVinyl 3s linear infinite;
+}
+
+.music-btn.playing::after {
+  content: '';
+  position: absolute;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: var(--cream);
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+}
+
+@keyframes spinVinyl {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+.music-label {
+  display: block;
+  font-size: 0.75rem;
+  color: var(--rose-gold);
+  margin-top: 6px;
+}
+
+/* ============================================================
+   10. GLASS-MORPHISM CARD (Thẻ nội dung hiệu ứng kính mờ)
+   ============================================================ */
+.glass-card {
+  background: rgba(255, 255, 255, 0.75);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(244, 160, 181, 0.2);
+  border-radius: 20px;
+  padding: 20px;
+  margin-bottom: 16px;
+  box-shadow: var(--shadow-card);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.glass-card:active {
+  transform: scale(0.98);
+}
+
+/* ============================================================
+   11. DÒNG THỜI GIAN (TIMELINE)
+   ============================================================ */
+.timeline-container {
+  position: relative;
+  padding-left: 28px;
+}
+
+/* Đường kẻ dọc timeline */
+.timeline-container::before {
+  content: '';
+  position: absolute;
+  left: 8px;
+  top: 0;
+  bottom: 0;
+  width: 2px;
+  background: linear-gradient(to bottom, var(--pink-pastel), var(--rose-gold), var(--wine-red));
+  border-radius: 1px;
+}
+
+.timeline-item {
+  position: relative;
+  margin-bottom: 24px;
+  animation: fadeInUp 0.5s ease-out;
+}
+
+/* Chấm tròn trên timeline */
+.timeline-item::before {
+  content: '♥';
+  position: absolute;
+  left: -25px;
+  top: 20px;
+  width: 20px;
+  height: 20px;
+  font-size: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  background: var(--gradient-heart);
+  border-radius: 50%;
+  box-shadow: 0 0 10px rgba(244, 160, 181, 0.5);
+  z-index: 1;
+}
+
+.timeline-date {
+  font-family: 'Inter', sans-serif;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--rose-gold);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  margin-bottom: 8px;
+}
+
+.timeline-title {
+  font-family: 'Playfair Display', serif;
+  font-size: 1.15rem;
+  font-weight: 600;
+  color: var(--wine-red);
+  margin-bottom: 8px;
+}
+
+.timeline-content {
+  font-size: 0.9rem;
+  line-height: 1.65;
+  color: var(--wine-dark);
+  opacity: 0.85;
+}
+
+.timeline-image {
+  width: 100%;
+  border-radius: 12px;
+  margin-top: 12px;
+  object-fit: cover;
+  max-height: 250px;
+  box-shadow: var(--shadow-soft);
+}
+
+/* Timeline trống */
+.timeline-empty {
+  text-align: center;
+  padding: 40px 20px;
+  color: var(--rose-gold);
+  font-style: italic;
+}
+
+/* ============================================================
+   12. BUCKET LIST (Danh sách mong ước)
+   ============================================================ */
+.bucket-item {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 16px;
+  transition: all 0.3s ease;
+}
+
+.bucket-checkbox {
+  appearance: none;
+  -webkit-appearance: none;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  border: 2px solid var(--pink-pastel);
+  cursor: pointer;
+  flex-shrink: 0;
+  position: relative;
+  transition: all 0.3s ease;
+  background: transparent;
+}
+
+.bucket-checkbox:checked {
+  background: var(--gradient-heart);
+  border-color: transparent;
+}
+
+.bucket-checkbox:checked::after {
+  content: '✓';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  color: white;
+  font-size: 14px;
+  font-weight: bold;
+}
+
+.bucket-task {
+  font-size: 0.95rem;
+  line-height: 1.5;
+  flex: 1;
+  transition: all 0.3s ease;
+}
+
+.bucket-task.completed {
+  text-decoration: line-through;
+  opacity: 0.5;
+  color: var(--rose-gold);
+}
+
+.bucket-completed-date {
+  font-size: 0.7rem;
+  color: var(--rose-gold);
+  font-style: italic;
+}
+
+/* ============================================================
+   13. TIME CAPSULE (Hộp thư hẹn giờ)
+   ============================================================ */
+.capsule-card {
+  position: relative;
+  overflow: hidden;
+}
+
+.capsule-locked {
+  position: relative;
+}
+
+.capsule-locked .capsule-content-hidden {
+  filter: blur(6px);
+  user-select: none;
+  pointer-events: none;
+}
+
+.capsule-lock-overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(255, 248, 240, 0.85);
+  backdrop-filter: blur(4px);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  border-radius: 20px;
+  gap: 8px;
+}
+
+.lock-icon {
+  font-size: 2.5rem;
+  animation: lockShake 3s ease-in-out infinite;
+}
+
+@keyframes lockShake {
+  0%, 100% { transform: rotate(0deg); }
+  5% { transform: rotate(-5deg); }
+  10% { transform: rotate(5deg); }
+  15% { transform: rotate(0deg); }
+}
+
+.capsule-countdown {
+  font-family: 'Playfair Display', serif;
+  font-size: 0.85rem;
+  color: var(--wine-red);
+  font-weight: 600;
+}
+
+.capsule-unlock-label {
+  font-size: 0.75rem;
+  color: var(--rose-gold);
+  font-style: italic;
+}
+
+.capsule-message {
+  font-size: 0.95rem;
+  line-height: 1.7;
+  color: var(--wine-dark);
+  white-space: pre-wrap;
+}
+
+.capsule-meta {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 12px;
+  font-size: 0.75rem;
+  color: var(--rose-gold);
+}
+
+/* Form viết thư */
+.capsule-form textarea {
+  width: 100%;
+  min-height: 120px;
+  border: 1.5px solid rgba(244, 160, 181, 0.4);
+  border-radius: 12px;
+  padding: 14px;
+  font-family: 'Inter', sans-serif;
+  font-size: 0.9rem;
+  color: var(--wine-red);
+  background: rgba(255, 255, 255, 0.6);
+  resize: vertical;
+  outline: none;
+  transition: border-color 0.3s ease;
+}
+
+.capsule-form textarea:focus {
+  border-color: var(--pink-pastel);
+  box-shadow: 0 0 0 3px rgba(244, 160, 181, 0.15);
+}
+
+.capsule-form textarea::placeholder {
+  color: var(--rose-light);
+  font-style: italic;
+}
+
+/* ============================================================
+   14. BOTTOM NAVIGATION (Thanh điều hướng dưới)
+   ============================================================ */
+.bottom-nav {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: 100;
+  background: rgba(255, 255, 255, 0.92);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border-top: 1px solid rgba(244, 160, 181, 0.2);
+  display: flex;
+  justify-content: space-around;
+  padding: 8px 0;
+  padding-bottom: max(8px, env(safe-area-inset-bottom)); /* iPhone notch */
+  box-shadow: 0 -4px 20px rgba(183, 110, 121, 0.08);
+}
+
+.nav-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  border: none;
+  background: none;
+  cursor: pointer;
+  padding: 6px 12px;
+  border-radius: 12px;
+  transition: all 0.3s ease;
+  color: var(--rose-light);
+  position: relative;
+}
+
+.nav-item.active {
+  color: var(--wine-red);
+}
+
+/* Thanh indicator khi active */
+.nav-item.active::before {
+  content: '';
+  position: absolute;
+  top: -8px;
+  width: 24px;
+  height: 3px;
+  background: var(--gradient-heart);
+  border-radius: 2px;
+}
+
+.nav-icon {
+  font-size: 1.35rem;
+  line-height: 1;
+}
+
+.nav-label {
+  font-size: 0.65rem;
+  font-weight: 500;
+  letter-spacing: 0.3px;
+}
+
+/* ============================================================
+   15. ADMIN LOGIN POPUP
+   ============================================================ */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  background: rgba(90, 30, 37, 0.6);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  display: none;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  animation: fadeIn 0.3s ease;
+}
+
+.modal-overlay.active {
+  display: flex;
+}
+
+.modal-content {
+  background: white;
+  border-radius: 24px;
+  padding: 32px 24px;
+  width: 100%;
+  max-width: 380px;
+  box-shadow: 0 20px 60px rgba(90, 30, 37, 0.3);
+  animation: modalSlideUp 0.4s ease-out;
+  text-align: center;
+}
+
+@keyframes modalSlideUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px) scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.modal-title {
+  font-family: 'Playfair Display', serif;
+  font-size: 1.3rem;
+  color: var(--wine-red);
+  margin-bottom: 8px;
+}
+
+.modal-subtitle {
+  font-size: 0.85rem;
+  color: var(--rose-gold);
+  margin-bottom: 24px;
+}
+
+/* ============================================================
+   16. FORM INPUTS CHUNG
+   ============================================================ */
+.form-input {
+  width: 100%;
+  padding: 12px 16px;
+  border: 1.5px solid rgba(244, 160, 181, 0.4);
+  border-radius: 12px;
+  font-family: 'Inter', sans-serif;
+  font-size: 0.95rem;
+  color: var(--wine-red);
+  background: rgba(255, 248, 240, 0.5);
+  outline: none;
+  transition: all 0.3s ease;
+}
+
+.form-input:focus {
+  border-color: var(--pink-pastel);
+  box-shadow: 0 0 0 3px rgba(244, 160, 181, 0.15);
+  background: white;
+}
+
+.form-input::placeholder {
+  color: var(--rose-light);
+}
+
+.form-label {
+  display: block;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--rose-gold);
+  margin-bottom: 6px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+/* ============================================================
+   17. BUTTONS
+   ============================================================ */
+.btn-primary {
+  width: 100%;
+  padding: 14px;
+  border: none;
+  border-radius: 14px;
+  font-family: 'Inter', sans-serif;
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  background: var(--gradient-wine);
+  color: white;
+  box-shadow: 0 4px 15px rgba(114, 47, 55, 0.3);
+}
+
+.btn-primary:hover {
+  box-shadow: 0 6px 20px rgba(114, 47, 55, 0.4);
+  transform: translateY(-1px);
+}
+
+.btn-primary:active {
+  transform: translateY(0) scale(0.98);
+}
+
+.btn-secondary {
+  padding: 10px 20px;
+  border: 1.5px solid var(--pink-pastel);
+  border-radius: 12px;
+  font-family: 'Inter', sans-serif;
+  font-size: 0.85rem;
+  font-weight: 500;
+  cursor: pointer;
+  background: transparent;
+  color: var(--wine-red);
+  transition: all 0.3s ease;
+}
+
+.btn-secondary:hover {
+  background: var(--pink-soft);
+}
+
+.btn-danger {
+  padding: 8px 16px;
+  border: none;
+  border-radius: 10px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+  background: #FF4D6D;
+  color: white;
+  transition: all 0.3s ease;
+}
+
+.btn-danger:hover {
+  background: #C9184A;
+}
+
+.btn-icon {
+  width: 36px;
+  height: 36px;
+  border: none;
+  border-radius: 10px;
+  font-size: 1rem;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s ease;
+}
+
+.btn-edit {
+  background: rgba(244, 160, 181, 0.2);
+  color: var(--wine-red);
+}
+
+.btn-edit:hover {
+  background: rgba(244, 160, 181, 0.4);
+}
+
+.btn-delete {
+  background: rgba(255, 77, 109, 0.1);
+  color: #FF4D6D;
+}
+
+.btn-delete:hover {
+  background: rgba(255, 77, 109, 0.25);
+}
+
+/* ============================================================
+   18. ADMIN DASHBOARD
+   ============================================================ */
+.admin-panel {
+  display: none;
+}
+
+.admin-panel.active {
+  display: block;
+}
+
+.admin-header {
+  background: var(--gradient-wine);
+  color: white;
+  padding: 16px 20px;
+  border-radius: 20px;
+  margin-bottom: 20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.admin-header h2 {
+  font-family: 'Playfair Display', serif;
+  font-size: 1.2rem;
+}
+
+.admin-tab-bar {
+  display: flex;
+  gap: 6px;
+  margin-bottom: 20px;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+  padding: 2px;
+}
+
+.admin-tab-bar::-webkit-scrollbar { display: none; }
+
+.admin-tab {
+  padding: 10px 18px;
+  border: 1.5px solid var(--pink-pastel);
+  border-radius: 25px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+  background: white;
+  color: var(--wine-red);
+  white-space: nowrap;
+  transition: all 0.3s ease;
+}
+
+.admin-tab.active {
+  background: var(--gradient-wine);
+  color: white;
+  border-color: transparent;
+}
+
+.admin-section {
+  display: none;
+  animation: fadeIn 0.3s ease;
+}
+
+.admin-section.active {
+  display: block;
+}
+
+.admin-list-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 16px;
+}
+
+.admin-list-item .item-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.admin-list-item .item-actions {
+  display: flex;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+.admin-item-title {
+  font-family: 'Playfair Display', serif;
+  font-weight: 600;
+  color: var(--wine-red);
+  margin-bottom: 4px;
+  font-size: 0.95rem;
+}
+
+.admin-item-meta {
+  font-size: 0.75rem;
+  color: var(--rose-gold);
+}
+
+.admin-item-preview {
+  font-size: 0.85rem;
+  color: var(--wine-dark);
+  opacity: 0.8;
+  margin-top: 4px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+}
+
+/* ============================================================
+   19. ADMIN FORM MODAL (Thêm/Sửa kỷ niệm)
+   ============================================================ */
+.admin-form-modal .modal-content {
+  max-height: 90vh;
+  overflow-y: auto;
+  text-align: left;
+}
+
+.form-group {
+  margin-bottom: 18px;
+}
+
+.form-group input[type="file"] {
+  width: 100%;
+  padding: 10px;
+  border: 1.5px dashed var(--pink-pastel);
+  border-radius: 12px;
+  background: var(--pink-soft);
+  cursor: pointer;
+  font-size: 0.85rem;
+  color: var(--wine-red);
+}
+
+.form-group input[type="file"]::file-selector-button {
+  padding: 6px 14px;
+  border: none;
+  border-radius: 8px;
+  background: var(--gradient-wine);
+  color: white;
+  font-size: 0.8rem;
+  cursor: pointer;
+  margin-right: 10px;
+}
+
+.image-preview {
+  margin-top: 8px;
+  border-radius: 12px;
+  max-height: 150px;
+  object-fit: cover;
+  width: 100%;
+  display: none;
+}
+
+.image-preview.has-image {
+  display: block;
+}
+
+/* ============================================================
+   20. PAGE SECTION TITLES
+   ============================================================ */
+.section-title {
+  font-family: 'Playfair Display', serif;
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--wine-red);
+  text-align: center;
+  margin: 20px 0 24px;
+  position: relative;
+}
+
+.section-title::after {
+  content: '';
+  display: block;
+  width: 40px;
+  height: 3px;
+  background: var(--gradient-heart);
+  margin: 10px auto 0;
+  border-radius: 2px;
+}
+
+.section-subtitle {
+  text-align: center;
+  font-size: 0.85rem;
+  color: var(--rose-gold);
+  font-style: italic;
+  margin-top: -16px;
+  margin-bottom: 24px;
+}
+
+/* ============================================================
+   21. TRẠNG THÁI TRỐNG & LOADING
+   ============================================================ */
+.empty-state {
+  text-align: center;
+  padding: 40px 20px;
+  color: var(--rose-gold);
+}
+
+.empty-state-icon {
+  font-size: 3rem;
+  margin-bottom: 12px;
+  opacity: 0.5;
+}
+
+.empty-state-text {
+  font-size: 0.9rem;
+  font-style: italic;
+}
+
+/* Toast notification */
+.toast {
+  position: fixed;
+  bottom: 100px;
+  left: 50%;
+  transform: translateX(-50%) translateY(20px);
+  padding: 12px 24px;
+  border-radius: 14px;
+  font-size: 0.85rem;
+  font-weight: 500;
+  z-index: 2000;
+  opacity: 0;
+  transition: all 0.4s ease;
+  pointer-events: none;
+  max-width: 90%;
+  text-align: center;
+}
+
+.toast.show {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
+}
+
+.toast.success {
+  background: var(--gradient-wine);
+  color: white;
+  box-shadow: 0 4px 20px rgba(114, 47, 55, 0.3);
+}
+
+.toast.error {
+  background: #FF4D6D;
+  color: white;
+  box-shadow: 0 4px 20px rgba(255, 77, 109, 0.3);
+}
+
+/* ============================================================
+   22. RESPONSIVE ADJUSTMENTS
+   ============================================================ */
+
+/* Tablet trở lên */
+@media (min-width: 768px) {
+  #app-container {
+    max-width: 480px;
+    margin: 0 auto;
+  }
+
+  .bottom-nav {
+    max-width: 480px;
+    left: 50%;
+    transform: translateX(-50%);
+    border-radius: 20px 20px 0 0;
+  }
+
+  .counter-item {
+    min-width: 90px;
+    padding: 18px 16px;
+  }
+
+  .counter-number {
+    font-size: 2.5rem;
+  }
+
+  .couple-avatar {
+    width: 110px;
+    height: 110px;
+  }
+}
+
+/* Rất nhỏ (iPhone SE, v.v.) */
+@media (max-width: 350px) {
+  .counter-item {
+    min-width: 60px;
+    padding: 10px 8px;
+  }
+
+  .counter-number {
+    font-size: 1.5rem;
+  }
+
+  .couple-avatar {
+    width: 70px;
+    height: 70px;
+  }
+}
+
+/* ============================================================
+   23. HIỆU ỨNG BỔ SUNG
+   ============================================================ */
+
+/* Hiệu ứng shimmer cho loading */
+@keyframes shimmer {
+  0% { background-position: -200px 0; }
+  100% { background-position: 200px 0; }
+}
+
+.skeleton {
+  background: linear-gradient(90deg, var(--cream) 25%, var(--pink-soft) 50%, var(--cream) 75%);
+  background-size: 400px 100%;
+  animation: shimmer 1.5s infinite linear;
+  border-radius: 8px;
+}
+
+/* Hiệu ứng progress bar cho long-press */
+.long-press-indicator {
+  position: absolute;
+  bottom: -4px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 0;
+  height: 3px;
+  background: var(--gradient-heart);
+  border-radius: 2px;
+  transition: width 3s linear;
+}
+
+.long-press-indicator.pressing {
+  width: 100%;
+}
+
+/* Admin badge */
+.admin-badge {
+  display: none;
+  position: fixed;
+  top: 12px;
+  right: 12px;
+  padding: 4px 12px;
+  background: var(--gradient-wine);
+  color: white;
+  border-radius: 20px;
+  font-size: 0.7rem;
+  font-weight: 600;
+  z-index: 500;
+  box-shadow: var(--shadow-card);
+  animation: fadeIn 0.3s ease;
+}
+
+.admin-badge.active {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}

@@ -1,0 +1,371 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="description" content="Our Love Story - Website lưu giữ kỷ niệm tình yêu đẹp nhất">
+  <meta name="theme-color" content="#722F37">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <title>Our Love Story ♥</title>
+
+  <!-- Tailwind CSS v3 CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    // Cấu hình Tailwind custom colors & fonts
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            'pink-pastel': '#F4A0B5',
+            'pink-light': '#FFD6E0',
+            'pink-soft': '#FFF0F3',
+            'cream': '#FFF8F0',
+            'cream-dark': '#F5EDE3',
+            'wine': '#722F37',
+            'wine-dark': '#5A1E25',
+            'rose-gold': '#B76E79',
+            'rose-light': '#D4A0A8',
+            'blush': '#E8B4B8',
+          },
+          fontFamily: {
+            'display': ['Playfair Display', 'serif'],
+            'script': ['Dancing Script', 'cursive'],
+            'body': ['Inter', 'sans-serif'],
+          }
+        }
+      }
+    }
+  </script>
+
+  <!-- Custom CSS -->
+  <link rel="stylesheet" href="css/style.css">
+</head>
+
+<body>
+  <!-- ============================================================
+       CANVAS HIỆU ỨNG TRÁI TIM RƠI
+       Canvas phủ toàn màn hình, pointer-events: none
+       để không chặn tương tác người dùng
+       ============================================================ -->
+  <canvas id="hearts-canvas"></canvas>
+
+  <!-- ============================================================
+       ADMIN BADGE - Hiển thị khi đang ở chế độ Admin
+       ============================================================ -->
+  <div id="admin-badge" class="admin-badge">
+    <span>🔑</span> <span>ADMIN</span>
+  </div>
+
+  <!-- ============================================================
+       TOAST NOTIFICATION
+       ============================================================ -->
+  <div id="toast" class="toast"></div>
+
+  <!-- ============================================================
+       APP CONTAINER CHÍNH
+       ============================================================ -->
+  <div id="app-container">
+
+    <!-- ========== HEADER ========== -->
+    <header class="app-header">
+      <!-- Logo: Nhấn giữ 3 giây để kích hoạt Admin Login -->
+      <h1 id="logo" class="logo-text">Our love story</h1>
+      <!-- Thanh progress khi đang nhấn giữ -->
+      <div id="long-press-bar" class="long-press-indicator"></div>
+    </header>
+
+    <!-- ============================================================
+         TRANG 1: DASHBOARD (TRANG CHỦ)
+         ============================================================ -->
+    <section id="page-home" class="page-section active">
+
+      <!-- Đồng hồ đếm ngày yêu nhau -->
+      <div class="love-counter-section">
+        <p class="love-counter-label">Chúng mình đã yêu nhau được</p>
+        <div class="love-counter-grid">
+          <div class="counter-item">
+            <span id="counter-days" class="counter-number">0</span>
+            <span class="counter-label">Ngày</span>
+          </div>
+          <div class="counter-item">
+            <span id="counter-hours" class="counter-number">0</span>
+            <span class="counter-label">Giờ</span>
+          </div>
+          <div class="counter-item">
+            <span id="counter-minutes" class="counter-number">0</span>
+            <span class="counter-label">Phút</span>
+          </div>
+          <div class="counter-item">
+            <span id="counter-seconds" class="counter-number">0</span>
+            <span class="counter-label">Giây</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Ảnh đại diện cặp đôi -->
+      <div class="couple-avatar-wrapper">
+        <img id="dashboard-avatar-1" src="https://api.dicebear.com/9.x/personas/svg?seed=Felix&backgroundColor=ffd6e0" alt="Avatar 1" class="couple-avatar">
+        <span class="couple-heart-icon">❤️</span>
+        <img id="dashboard-avatar-2" src="https://api.dicebear.com/9.x/personas/svg?seed=Lily&backgroundColor=fff0f3" alt="Avatar 2" class="couple-avatar">
+      </div>
+
+      <!-- Nút đĩa nhạc Bật/Tắt nhạc nền -->
+      <div class="music-toggle-wrapper">
+        <button id="music-btn" class="music-btn" aria-label="Bật/Tắt nhạc nền">
+          🎵
+        </button>
+        <span class="music-label">Nhạc nền</span>
+      </div>
+
+      <!-- Audio element (nhạc nền demo) -->
+      <audio id="bg-music" loop preload="auto">
+        <!-- Thay link nhạc mp3 demo tại đây -->
+        <source src="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3" type="audio/mpeg">
+      </audio>
+
+      <!-- Quote lãng mạn -->
+      <div class="glass-card text-center">
+        <p class="font-display text-wine italic text-sm leading-relaxed">
+          "Trong hàng triệu người trên thế giới này, em là điều tuyệt vời nhất mà anh tìm thấy."
+        </p>
+        <p class="text-rose-gold text-xs mt-2">— Our Love Story —</p>
+      </div>
+    </section>
+
+    <!-- ============================================================
+         TRANG 2: DÒNG THỜI GIAN (TIMELINE)
+         ============================================================ -->
+    <section id="page-timeline" class="page-section">
+      <h2 class="section-title">Kỷ Niệm</h2>
+      <p class="section-subtitle">Dòng thời gian tình yêu của chúng mình</p>
+
+      <!-- Container timeline - nội dung render bởi JS -->
+      <div id="timeline-list" class="timeline-container">
+        <!-- JS sẽ render các timeline-item vào đây -->
+      </div>
+    </section>
+
+    <!-- ============================================================
+         TRANG 3: DANH SÁCH MONG ƯỚC (BUCKET LIST)
+         ============================================================ -->
+    <section id="page-bucketlist" class="page-section">
+      <h2 class="section-title">Bucket List</h2>
+      <p class="section-subtitle">Những điều muốn làm cùng nhau</p>
+
+      <!-- Danh sách bucket - render bởi JS -->
+      <div id="bucketlist-container">
+        <!-- JS sẽ render các bucket-item vào đây -->
+      </div>
+    </section>
+
+    <!-- ============================================================
+         TRANG 4: HỘP THƯ HẸN GIỜ (TIME CAPSULE)
+         ============================================================ -->
+    <section id="page-capsule" class="page-section">
+      <h2 class="section-title">Hộp Thư Hẹn Giờ</h2>
+      <p class="section-subtitle">Gửi lời yêu thương đến tương lai</p>
+
+      <!-- Form viết thư mới -->
+      <div class="glass-card capsule-form mb-4">
+        <h3 class="font-display text-wine font-semibold text-base mb-3">✉️ Viết thư mới</h3>
+        <div class="form-group">
+          <label class="form-label">Nội dung thư</label>
+          <textarea id="capsule-message" class="form-input" rows="4" placeholder="Viết lời yêu thương gửi đến tương lai..."></textarea>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Ngày mở khóa</label>
+          <input type="date" id="capsule-date" class="form-input">
+        </div>
+        <button id="btn-send-capsule" class="btn-primary mt-2">
+          💌 Gửi vào hộp thư thời gian
+        </button>
+      </div>
+
+      <!-- Danh sách thư hẹn giờ - render bởi JS -->
+      <div id="capsule-list">
+        <!-- JS sẽ render các capsule-card vào đây -->
+      </div>
+    </section>
+
+    <!-- ============================================================
+         TRANG 5: ADMIN DASHBOARD (ẨN MẶC ĐỊNH)
+         ============================================================ -->
+    <section id="page-admin" class="page-section">
+      <!-- Header Admin -->
+      <div class="admin-header">
+        <h2>🔐 Quản trị viên</h2>
+        <button id="btn-admin-logout" class="btn-secondary" style="color: white; border-color: rgba(255,255,255,0.4); font-size: 0.75rem;">
+          Đăng xuất
+        </button>
+      </div>
+
+      <!-- Tab chuyển đổi các mục quản lý -->
+      <div class="admin-tab-bar">
+        <button class="admin-tab active" data-admin-tab="memories">📸 Kỷ niệm</button>
+        <button class="admin-tab" data-admin-tab="bucketlist">✅ Bucket List</button>
+        <button class="admin-tab" data-admin-tab="capsules">💌 Time Capsule</button>
+        <button class="admin-tab" data-admin-tab="settings">⚙️ Cài đặt</button>
+      </div>
+
+      <!-- ===== Tab: Quản lý Kỷ niệm ===== -->
+      <div id="admin-memories" class="admin-section active">
+        <button id="btn-add-memory" class="btn-primary mb-4">
+          ➕ Thêm kỷ niệm mới
+        </button>
+        <div id="admin-memory-list">
+          <!-- JS render danh sách kỷ niệm kèm nút Sửa/Xóa -->
+        </div>
+      </div>
+
+      <!-- ===== Tab: Quản lý Bucket List ===== -->
+      <div id="admin-bucketlist" class="admin-section">
+        <!-- Form thêm mục tiêu mới -->
+        <div class="glass-card mb-4">
+          <div class="flex gap-2">
+            <input type="text" id="admin-new-task" class="form-input flex-1" placeholder="Nhập mục tiêu mới...">
+            <button id="btn-add-task" class="btn-primary" style="width: auto; padding: 12px 20px;">
+              ➕
+            </button>
+          </div>
+        </div>
+        <div id="admin-bucketlist-list">
+          <!-- JS render danh sách mục tiêu kèm nút Xóa -->
+        </div>
+      </div>
+
+      <!-- ===== Tab: Quản lý Time Capsule (Đặc quyền xem trước thư khóa) ===== -->
+      <div id="admin-capsules" class="admin-section">
+        <div id="admin-capsule-list">
+          <!-- JS render danh sách thư, admin xem được nội dung dù đang khóa -->
+        </div>
+      </div>
+
+      <!-- ===== Tab: Quản lý Cài đặt (Ảnh đại diện, Ngày yêu) ===== -->
+      <div id="admin-settings" class="admin-section">
+        <div class="glass-card">
+          <h3 class="font-display text-wine font-semibold text-base mb-4">👫 Thay đổi ảnh đại diện</h3>
+          
+          <div class="grid grid-cols-2 gap-4 mb-6">
+            <div class="text-center">
+              <label class="form-label">Bạn Nam</label>
+              <div class="relative inline-block">
+                <img id="admin-avatar-1-preview" src="" class="w-24 h-24 rounded-full border-2 border-pink-pastel object-cover mb-2" style="display: block;">
+                <input type="file" id="admin-avatar-1-file" class="hidden" accept="image/*">
+                <button onclick="document.getElementById('admin-avatar-1-file').click()" class="btn-secondary text-[10px] py-1 px-2">Chọn ảnh</button>
+              </div>
+            </div>
+            <div class="text-center">
+              <label class="form-label">Bạn Nữ</label>
+              <div class="relative inline-block">
+                <img id="admin-avatar-2-preview" src="" class="w-24 h-24 rounded-full border-2 border-pink-pastel object-cover mb-2" style="display: block;">
+                <input type="file" id="admin-avatar-2-file" class="hidden" accept="image/*">
+                <button onclick="document.getElementById('admin-avatar-2-file').click()" class="btn-secondary text-[10px] py-1 px-2">Chọn ảnh</button>
+              </div>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Ngày bắt đầu yêu nhau</label>
+            <input type="datetime-local" id="admin-love-date" class="form-input">
+          </div>
+
+          <button id="btn-save-settings" class="btn-primary">
+            💾 Lưu thay đổi
+          </button>
+        </div>
+      </div>
+    </section>
+
+  </div><!-- /app-container -->
+
+  <!-- ============================================================
+       BOTTOM NAVIGATION
+       ============================================================ -->
+  <nav id="bottom-nav" class="bottom-nav">
+    <button class="nav-item active" data-page="home">
+      <span class="nav-icon">🏠</span>
+      <span class="nav-label">Trang chủ</span>
+    </button>
+    <button class="nav-item" data-page="timeline">
+      <span class="nav-icon">📅</span>
+      <span class="nav-label">Kỷ niệm</span>
+    </button>
+    <button class="nav-item" data-page="bucketlist">
+      <span class="nav-icon">✅</span>
+      <span class="nav-label">Bucket List</span>
+    </button>
+    <button class="nav-item" data-page="capsule">
+      <span class="nav-icon">💌</span>
+      <span class="nav-label">Hộp thư</span>
+    </button>
+  </nav>
+
+  <!-- ============================================================
+       MODAL: ĐĂNG NHẬP ADMIN
+       ============================================================ -->
+  <div id="modal-admin-login" class="modal-overlay">
+    <div class="modal-content">
+      <div class="text-4xl mb-3">🔐</div>
+      <h3 class="modal-title">Truy cập Admin</h3>
+      <p class="modal-subtitle">Nhập mật khẩu bí mật để tiếp tục</p>
+      <div class="form-group">
+        <input type="password" id="admin-password" class="form-input text-center" placeholder="Nhập mật khẩu..." autocomplete="off">
+      </div>
+      <button id="btn-admin-login" class="btn-primary mt-2">
+        Đăng nhập
+      </button>
+      <button id="btn-admin-cancel" class="btn-secondary mt-3 w-full">
+        Hủy bỏ
+      </button>
+    </div>
+  </div>
+
+  <!-- ============================================================
+       MODAL: THÊM / SỬA KỶ NIỆM
+       ============================================================ -->
+  <div id="modal-memory-form" class="modal-overlay admin-form-modal">
+    <div class="modal-content">
+      <h3 id="memory-form-title" class="modal-title">Thêm kỷ niệm mới</h3>
+      <!-- Hidden field lưu ID khi đang sửa -->
+      <input type="hidden" id="memory-edit-id">
+
+      <div class="form-group">
+        <label class="form-label">Tiêu đề kỷ niệm</label>
+        <input type="text" id="memory-title" class="form-input" placeholder="VD: Lần đầu nắm tay...">
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Nội dung</label>
+        <textarea id="memory-content" class="form-input" rows="4" placeholder="Viết về kỷ niệm đó..."></textarea>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Ngày tháng</label>
+        <input type="date" id="memory-date" class="form-input">
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Hình ảnh</label>
+        <input type="file" id="memory-image" accept="image/*">
+        <img id="memory-image-preview" class="image-preview" alt="Preview">
+      </div>
+
+      <button id="btn-save-memory" class="btn-primary mt-2">
+        💾 Lưu kỷ niệm
+      </button>
+      <button id="btn-cancel-memory" class="btn-secondary mt-3 w-full">
+        Hủy bỏ
+      </button>
+    </div>
+  </div>
+
+  <!-- ============================================================
+       SCRIPTS
+       Thứ tự load: api.js → app.js → admin.js
+       ============================================================ -->
+  <script src="js/api.js"></script>
+  <script src="js/app.js"></script>
+  <script src="js/admin.js"></script>
+</body>
+</html>
