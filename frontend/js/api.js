@@ -25,13 +25,13 @@
  * URL gốc của Backend API
  * Đổi thành URL server thật khi deploy
  */
-const API_BASE = "https://ourlove-backend.onrender.com";
+const API_BASE = "https://ourlove-backend.onrender.com/api";
 
 /**
  * URL gốc để hiển thị ảnh từ server
  * Ảnh được phục vụ qua express.static('/uploads')
  */
-const UPLOADS_BASE = "http://localhost:3000/uploads";
+const UPLOADS_BASE = "https://ourlove-backend.onrender.com/uploads";
 
 // ============================================================
 // HÀM HỖ TRỢ (HELPER FUNCTIONS)
