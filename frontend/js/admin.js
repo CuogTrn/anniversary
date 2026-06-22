@@ -357,15 +357,15 @@ async function loadAdminMemories() {
     }
 
     container.innerHTML = memories.map(memory => `
-      <div class="glass-card admin-list-item" data-id="${memory._id}">
+      <div class="glass-card admin-list-item" data-id="${memory.id || memory._id}">
         <div class="item-info">
           <div class="admin-item-title">${escapeHtml(memory.title)}</div>
           <div class="admin-item-meta">📅 ${formatDateVN(memory.date)} ${memory.imageUrl ? '| 🖼️ Có ảnh' : '| ❌ Chưa có ảnh'}</div>
           <div class="admin-item-preview">${escapeHtml(memory.content)}</div>
         </div>
         <div class="item-actions">
-          <button class="btn-icon btn-edit" onclick="openEditMemory('${memory._id}')" title="Chỉnh sửa">✏️</button>
-          <button class="btn-icon btn-delete" onclick="handleDeleteMemory('${memory._id}')" title="Xóa">🗑️</button>
+          <button class="btn-icon btn-edit" onclick="openEditMemory('${memory.id || memory._id}')" title="Chỉnh sửa">✏️</button>
+          <button class="btn-icon btn-delete" onclick="handleDeleteMemory('${memory.id || memory._id}')" title="Xóa">🗑️</button>
         </div>
       </div>
     `).join('');
@@ -418,7 +418,7 @@ async function openEditMemory(id) {
 
     // Điền dữ liệu vào form
     document.getElementById('memory-form-title').textContent = 'Chỉnh sửa kỷ niệm';
-    document.getElementById('memory-edit-id').value = memory._id;
+    document.getElementById('memory-edit-id').value = memory.id || memory._id;
     document.getElementById('memory-title').value = memory.title;
     document.getElementById('memory-content').value = memory.content;
     document.getElementById('memory-date').value = memory.date.split('T')[0];
@@ -537,7 +537,7 @@ async function loadAdminBucketList() {
     }
 
     container.innerHTML = items.map(item => `
-      <div class="glass-card admin-list-item" data-id="${item._id}">
+      <div class="glass-card admin-list-item" data-id="${item.id || item._id}">
         <div class="item-info">
           <div class="admin-item-title ${item.isCompleted ? 'line-through opacity-50' : ''}">
             ${item.isCompleted ? '✅' : '⬜'} ${escapeHtml(item.task)}
@@ -545,7 +545,7 @@ async function loadAdminBucketList() {
           ${item.completedAt ? `<div class="admin-item-meta">Hoàn thành: ${formatDateVN(item.completedAt)}</div>` : ''}
         </div>
         <div class="item-actions">
-          <button class="btn-icon btn-delete" onclick="handleDeleteBucketItem('${item._id}')" title="Xóa">🗑️</button>
+          <button class="btn-icon btn-delete" onclick="handleDeleteBucketItem('${item.id || item._id}')" title="Xóa">🗑️</button>
         </div>
       </div>
     `).join('');
@@ -632,7 +632,7 @@ async function loadAdminCapsules() {
         : '<span class="inline-block px-2 py-1 bg-red-100 text-red-700 rounded-full text-xs font-semibold">🔒 Đang khóa</span>';
 
       return `
-        <div class="glass-card admin-list-item" data-id="${capsule._id}">
+        <div class="glass-card admin-list-item" data-id="${capsule.id || capsule._id}">
           <div class="item-info">
             <div class="flex items-center gap-2 mb-1">
               ${statusBadge}
@@ -644,7 +644,7 @@ async function loadAdminCapsules() {
             <div class="admin-item-meta mt-1">✍️ Tạo ngày: ${formatDateVN(capsule.createdAt)}</div>
           </div>
           <div class="item-actions">
-            <button class="btn-icon btn-delete" onclick="handleDeleteCapsule('${capsule._id}')" title="Xóa">🗑️</button>
+            <button class="btn-icon btn-delete" onclick="handleDeleteCapsule('${capsule.id || capsule._id}')" title="Xóa">🗑️</button>
           </div>
         </div>
       `;

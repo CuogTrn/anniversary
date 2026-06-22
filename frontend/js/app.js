@@ -332,10 +332,10 @@ async function renderBucketList() {
     }
 
     container.innerHTML = items.map(item => `
-      <div class="glass-card bucket-item" data-id="${item._id}">
+      <div class="glass-card bucket-item" data-id="${item.id}">
         <input type="checkbox" class="bucket-checkbox"
                ${item.isCompleted ? 'checked' : ''}
-               onchange="handleBucketToggle('${item._id}', this.checked)">
+               onchange="handleBucketToggle('${item.id}', this.checked)">
         <div>
           <span class="bucket-task ${item.isCompleted ? 'completed' : ''}">${escapeHtml(item.task)}</span>
           ${item.completedAt ? `<span class="bucket-completed-date">✓ Hoàn thành: ${formatDateVN(item.completedAt)}</span>` : ''}
