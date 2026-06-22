@@ -26,6 +26,53 @@ function getDatabaseUrl() {
     return null;
 }
 
+function getSslConfig(databaseUrl) {
+    if (process.env.DATABASE_SSL === "false") {
+        return {};
+    }
+
+    if (process.env.DATABASE_SSL === "true") {
+        return {
+            ssl: {
+                require: true,
+                rejectUnauthorized: false,
+            },
+        };
+    }
+
+    try {
+        const normalized = databaseUrl.replace(
+            /^postgresql:\/\//,
+            "postgres://",
+        );
+        const hostname = new URL(normalized).hostname;
+        const isLocal =
+            hostname === "localhost" || hostname === "127.0.0.1";
+
+        if (isLocal) {
+            return {};
+        }
+
+        // Render internal URL: dpg-xxx-a (no dot). External URL: dpg-xxx-a.region-postgres.render.com
+        const needsSsl =
+            hostname.includes(".") ||
+            /sslmode=require/i.test(databaseUrl);
+
+        if (needsSsl) {
+            return {
+                ssl: {
+                    require: true,
+                    rejectUnauthorized: false,
+                },
+            };
+        }
+    } catch (_) {
+        // Fall through to no SSL
+    }
+
+    return {};
+}
+
 const databaseUrl = getDatabaseUrl();
 
 if (!databaseUrl) {
@@ -38,26 +85,39 @@ if (!databaseUrl) {
     process.exit(1);
 }
 
-// Tạo instance Sequelize từ DATABASE_URL (Render cung cấp)
 const sequelize = new Sequelize(databaseUrl, {
     dialect: "postgres",
     protocol: "postgres",
-    ssl: true, // Render yêu cầu SSL
-    dialectOptions: {
-        ssl: {
-            require: true,
-            rejectUnauthorized: false,
-        },
+    dialectOptions: getSslConfig(databaseUrl),
+    pool: {
+        max: 5,
+        min: 0,
+        acquire: 30000,
+        idle: 10000,
     },
-    logging: process.env.NODE_ENV === 'development' ? console.log : false,
+    logging: process.env.NODE_ENV === "development" ? console.log : false,
 });
 
-// Kiểm tra kết nối
-sequelize
-    .authenticate()
-    .then(() => console.log("[DB] ✅ Kết nối PostgreSQL thành công!"))
-    .catch((err) =>
-        console.error("[DB] ❌ Lỗi kết nối PostgreSQL:", err.message),
-    );
+/**
+ * Kết nối PostgreSQL với retry (Render cold start / DB chưa sẵn sàng)
+ */
+async function ensureConnected(maxAttempts = 5, delayMs = 2000) {
+    for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+        try {
+            await sequelize.authenticate();
+            console.log("[DB] ✅ Kết nối PostgreSQL thành công!");
+            return;
+        } catch (err) {
+            console.error(
+                `[DB] Kết nối thất bại (${attempt}/${maxAttempts}): ${err.message}`,
+            );
+            if (attempt === maxAttempts) {
+                throw err;
+            }
+            await new Promise((resolve) => setTimeout(resolve, delayMs));
+        }
+    }
+}
 
 module.exports = sequelize;
+module.exports.ensureConnected = ensureConnected;

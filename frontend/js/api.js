@@ -33,6 +33,13 @@ const API_BASE = "https://ourlove-backend.onrender.com/api";
  */
 const UPLOADS_BASE = "https://ourlove-backend.onrender.com/uploads";
 
+const RETRYABLE_STATUS = new Set([500, 502, 503, 504]);
+const MAX_GET_RETRIES = 3;
+
+function sleep(ms) {
+    return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
 // ============================================================
 // HÀM HỖ TRỢ (HELPER FUNCTIONS)
 // ============================================================
@@ -41,9 +48,10 @@ const UPLOADS_BASE = "https://ourlove-backend.onrender.com/uploads";
  * Hàm gọi API chung - bọc fetch() với xử lý lỗi thống nhất
  * @param {string} endpoint - Đường dẫn API (VD: '/memories')
  * @param {object} options - Cấu hình fetch (method, body, headers...)
+ * @param {number} attempt - Số lần thử (dùng nội bộ cho retry)
  * @returns {Promise<object>} - Dữ liệu JSON từ server
  */
-async function apiRequest(endpoint, options = {}) {
+async function apiRequest(endpoint, options = {}, attempt = 1) {
     try {
         // Thêm token Admin vào header nếu đang đăng nhập
         const token = sessionStorage.getItem("adminToken");
@@ -54,28 +62,56 @@ async function apiRequest(endpoint, options = {}) {
             };
         }
 
-        // Gọi API
+        const method = (options.method || "GET").toUpperCase();
         const response = await fetch(`${API_BASE}${endpoint}`, options);
 
-        // Parse JSON response
-        const data = await response.json();
+        const contentType = response.headers.get("content-type") || "";
+        let data;
 
-        // Kiểm tra response status
+        if (contentType.includes("application/json")) {
+            data = await response.json();
+        } else {
+            const text = await response.text();
+            throw new Error(
+                text.startsWith("<!DOCTYPE")
+                    ? `Server trả về lỗi HTML (${response.status}). Backend có thể chưa sẵn sàng.`
+                    : `Phản hồi không hợp lệ (${response.status})`,
+            );
+        }
+
         if (!response.ok) {
+            if (
+                method === "GET" &&
+                RETRYABLE_STATUS.has(response.status) &&
+                attempt < MAX_GET_RETRIES
+            ) {
+                await sleep(1500 * attempt);
+                return apiRequest(endpoint, options, attempt + 1);
+            }
+
             throw new Error(data.message || `Lỗi HTTP ${response.status}`);
         }
 
         return data;
     } catch (error) {
+        if (
+            attempt < MAX_GET_RETRIES &&
+            (options.method || "GET").toUpperCase() === "GET" &&
+            (error.message.includes("Failed to fetch") ||
+                error.message.includes("NetworkError"))
+        ) {
+            await sleep(1500 * attempt);
+            return apiRequest(endpoint, options, attempt + 1);
+        }
+
         console.error(`[API ERROR] ${endpoint}:`, error.message);
 
-        // Nếu lỗi mạng (server không hoạt động) → thông báo rõ ràng
         if (
             error.message.includes("Failed to fetch") ||
             error.message.includes("NetworkError")
         ) {
             throw new Error(
-                "Không thể kết nối đến server! Hãy kiểm tra Backend đang chạy tại http://localhost:3000",
+                "Không thể kết nối đến server! Render có thể đang khởi động — thử lại sau vài giây.",
             );
         }
 

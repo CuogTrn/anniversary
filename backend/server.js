@@ -22,6 +22,7 @@ require("dotenv").config();
 // IMPORT DATABASE & MODELS
 // ============================================================
 const sequelize = require("./config/database");
+const { ensureConnected } = require("./config/database");
 const Memory = require("./models/Memory");
 const BucketItem = require("./models/BucketItem");
 const TimeCapsule = require("./models/TimeCapsule");
@@ -53,6 +54,21 @@ const storage = new CloudinaryStorage({
 
 const upload = multer({ storage: storage });
 
+function handleUpload(middleware) {
+    return (req, res, next) => {
+        middleware(req, res, (err) => {
+            if (err) {
+                console.error("[UPLOAD]", err.message);
+                return res.status(500).json({
+                    success: false,
+                    message: err.message || "Lỗi upload ảnh!",
+                });
+            }
+            next();
+        });
+    };
+}
+
 // ============================================================
 // MIDDLEWARE
 // ============================================================
@@ -62,12 +78,23 @@ app.use(express.json());
 // ============================================================
 // HEALTH CHECK ENDPOINT
 // ============================================================
-app.get('/health', (req, res) => {
-    res.status(200).json({ 
-        status: 'ok', 
-        timestamp: new Date(),
-        service: 'our-love-story-backend'
-    });
+app.get("/health", async (req, res) => {
+    try {
+        await sequelize.authenticate();
+        res.status(200).json({
+            status: "ok",
+            db: "connected",
+            timestamp: new Date(),
+            service: "our-love-story-backend",
+        });
+    } catch (error) {
+        res.status(503).json({
+            status: "degraded",
+            db: "disconnected",
+            message: error.message,
+            timestamp: new Date(),
+        });
+    }
 });
 
 // ============================================================
@@ -79,26 +106,21 @@ const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || "ourlove2025";
 // TẠO BẢNG & KHỞI ĐỘNG DATABASE
 // ============================================================
 async function initializeDatabase() {
-    try {
-        // Tạo tất cả bảng nếu chưa tồn tại
-        await sequelize.sync({ alter: false });
-        console.log("[DB] ✅ Các bảng đã được khởi tạo!");
+    await ensureConnected();
 
-        // Tạo Settings record duy nhất nếu chưa có
-        const [settings, created] = await Settings.findOrCreate({
-            where: {},
-            defaults: {
-                avatar1: "",
-                avatar2: "",
-                loveStartDate: new Date("2025-12-22T00:00:00"),
-            },
+    // Tạo tất cả bảng nếu chưa tồn tại
+    await sequelize.sync({ alter: false });
+    console.log("[DB] ✅ Các bảng đã được khởi tạo!");
+
+    // Tạo Settings record duy nhất nếu chưa có
+    let settings = await Settings.findOne();
+    if (!settings) {
+        settings = await Settings.create({
+            avatar1: "",
+            avatar2: "",
+            loveStartDate: new Date("2025-12-22T00:00:00"),
         });
-
-        if (created) {
-            console.log("[DB] ✅ Đã tạo Settings record mặc định!");
-        }
-    } catch (error) {
-        console.error("[DB] ❌ Lỗi khởi tạo database:", error.message);
+        console.log("[DB] ✅ Đã tạo Settings record mặc định!");
     }
 }
 
@@ -156,7 +178,7 @@ app.get("/api/memories", async (req, res) => {
  * POST /api/memories
  * Tạo kỷ niệm mới, ảnh lưu trên Cloudinary
  */
-app.post("/api/memories", upload.single("image"), async (req, res) => {
+app.post("/api/memories", handleUpload(upload.single("image")), async (req, res) => {
     try {
         const { title, content, date } = req.body;
 
@@ -187,7 +209,7 @@ app.post("/api/memories", upload.single("image"), async (req, res) => {
  * PUT /api/memories/:id
  * Cập nhật kỷ niệm
  */
-app.put("/api/memories/:id", upload.single("image"), async (req, res) => {
+app.put("/api/memories/:id", handleUpload(upload.single("image")), async (req, res) => {
     try {
         const { id } = req.params;
         const { title, content, date } = req.body;
@@ -391,17 +413,6 @@ app.delete("/api/timecapsule/:id", async (req, res) => {
 });
 
 // ============================================================
-// GLOBAL ERROR HANDLER
-// ============================================================
-app.use((err, req, res, next) => {
-    console.error('[ERROR]', err.message);
-    res.status(err.status || 500).json({
-        success: false,
-        message: err.message || 'Internal server error'
-    });
-});
-
-// ============================================================
 // API ROUTES - CÀI ĐẶT (SETTINGS & AVATARS)
 // ============================================================
 
@@ -424,10 +435,12 @@ app.get("/api/settings", async (req, res) => {
  */
 app.post(
     "/api/settings/avatars",
-    upload.fields([
-        { name: "avatar1", maxCount: 1 },
-        { name: "avatar2", maxCount: 1 },
-    ]),
+    handleUpload(
+        upload.fields([
+            { name: "avatar1", maxCount: 1 },
+            { name: "avatar2", maxCount: 1 },
+        ]),
+    ),
     async (req, res) => {
         try {
             let settings = await Settings.findOne();
@@ -475,6 +488,17 @@ app.put("/api/settings", async (req, res) => {
     } catch (error) {
         res.status(500).json({ success: false, message: error.message });
     }
+});
+
+// ============================================================
+// GLOBAL ERROR HANDLER
+// ============================================================
+app.use((err, req, res, next) => {
+    console.error("[ERROR]", err.message);
+    res.status(err.status || 500).json({
+        success: false,
+        message: err.message || "Internal server error",
+    });
 });
 
 // ============================================================
